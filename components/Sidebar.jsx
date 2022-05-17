@@ -34,12 +34,6 @@ const Sidebar = () => {
     handleSetUsername,
   } = useContext(AmazonContext);
 
-  console.log(isAuthenticated);
-
-  // const isAuthenticated = true;
-  // const username = "kjkj";
-  // const nickname = "";
-
   return (
     <div className={styles.container}>
       <div className={styles.profile}>

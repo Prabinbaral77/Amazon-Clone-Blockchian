@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import Card from "./Card";
+import { AmazonContext } from "../context/amazonContext";
 
 const Cards = () => {
   const styles = {
@@ -8,19 +9,23 @@ const Cards = () => {
     cards: `flex items-center  flex-wrap gap-[80px]`,
   };
 
+  const { assets } = useContext(AmazonContext);
+
   const item = {
     id: 0,
     attributes: {
       name: "Doge",
       amount: 5,
-      src: "https://media1.giphy.com/media/oBQZIgNobc7ewVWvCd/giphy.gif?cid=ecf05e47y86zf0a44okj0fksvb83wc3n7x1xpkvtva6nbqg4&rid=giphy.gif&ct=g",
+      src: "https://brand.assets.adidas.com/f_auto,q_auto,fl_lossy/capi/enUS/Images/2021/12/metaverse-blog-image-bayc_221-825942.png",
     },
   };
   return (
     <div className={styles.container}>
       <div className={styles.title}>New Release</div>
       <div className={styles.cards}>
-        <Card key={item.id} item={item.attributes} />
+        {assets.map((asset) => {
+          return <Card key={asset.id} item={asset.attributes} />;
+        })}
       </div>
     </div>
   );

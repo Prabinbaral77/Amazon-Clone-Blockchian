@@ -20,7 +20,7 @@ export const AmazonProvider = ({ children }) => {
   const {
     data: assetsData,
     error: assetsDataError,
-    isLoading: userDataisLoading,
+    isLoading: assetsDataIsLoading,
   } = useMoralisQuery("assets");
 
   useEffect(() => {
@@ -33,12 +33,20 @@ export const AmazonProvider = ({ children }) => {
   }, [isAuthenticated, user, username]);
 
   useEffect(() => {
+    const getAssets = async () => {
+      try {
+        await enableWeb3();
+        setAssets(assetsData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     (async () => {
       if (isWeb3Enabled) {
         await getAssets();
       }
     })();
-  }, [isWeb3Enabled]);
+  }, [assetsData, isWeb3Enabled, assetsDataIsLoading]);
 
   const handleSetUsername = () => {
     if (user) {
@@ -54,16 +62,6 @@ export const AmazonProvider = ({ children }) => {
     }
   };
 
-  const getAssets = async () => {
-    try {
-      await enableWeb3();
-      console.log("running");
-      setAssets(assetsData);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   return (
     <AmazonContext.Provider
       value={{
@@ -72,6 +70,7 @@ export const AmazonProvider = ({ children }) => {
         handleSetUsername,
         nickname,
         setNickname,
+        assets,
       }}
     >
       {children}

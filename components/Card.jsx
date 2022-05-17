@@ -26,7 +26,7 @@ const Card = ({ item }) => {
       <div>
         <div className={styles.cardTitle}>{item.name}</div>
         <div className={styles.price}>
-          {item.amount} AC
+          {item.price} AC
           <FaCoins className={styles.coins} />
         </div>
       </div>
