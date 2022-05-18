@@ -32,30 +32,11 @@ export const AmazonProvider = ({ children }) => {
     isLoading: assetsDataIsLoading,
   } = useMoralisQuery("assets");
 
-  useEffect(() => {
-    (async () => {
-      if (isAuthenticated) {
-        const currentUserName = await user?.get("nickname");
-        setUsername(currentUserName);
-      }
-    })();
-  }, [isAuthenticated, user, username]);
-
-  useEffect(() => {
-    const getAssets = async () => {
-      try {
-        await enableWeb3();
-        setAssets(assetsData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    (async () => {
-      if (isWeb3Enabled) {
-        await getAssets();
-      }
-    })();
-  }, [assetsData, isWeb3Enabled, assetsDataIsLoading]);
+  const {
+    data: userData,
+    error: userDataError,
+    isLoading: userDataIsLoading,
+  } = useMoralisQuery("_User");
 
   const handleSetUsername = () => {
     if (user) {
@@ -89,11 +70,78 @@ export const AmazonProvider = ({ children }) => {
       }
     } catch (error) {
       console.log(error);
-      throw new Error(error);
     }
   };
 
-  const buyToken = async () => {};
+  const buyAsset = async (price, asset) => {
+    try {
+      if (!isAuthenticated) return;
+
+      const options = {
+        type: "erc20",
+        amount: price,
+        receiver: amazonCoinAddress,
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const buyToken = async () => {
+    if (!isAuthenticated) {
+      await authenticate();
+    }
+
+    const amount = ethers.BigNumber.from(tokenAmount);
+    const price = ethers.BigNumber.from("100000000000000");
+    const calcPrice = amount.mul(price);
+
+    let options = {
+      contractAddress: amazonCoinAddress,
+      functionName: "mint",
+      abi: amazonAbi,
+      msgValue: calcPrice,
+      params: {
+        amount,
+      },
+    };
+
+    const transactions = await Moralis.executeFunction(options);
+    const receipt = await transactions.wait(4);
+    setIsLoading(false);
+    console.log(receipt);
+    setEtherScanLink(
+      `https://rinkeby.etherscan.io/tx/${receipt.transactionHash}`
+    );
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (isAuthenticated) {
+        await getBalance();
+        const currentUserName = await user?.get("nickname");
+        setUsername(currentUserName);
+        const account = await user?.get("ethAddress");
+        setCurrentAccount(account);
+      }
+    })();
+  }, [isAuthenticated, user, username, currentAccount]);
+
+  useEffect(() => {
+    const getAssets = async () => {
+      try {
+        await enableWeb3();
+        setAssets(assetsData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    (async () => {
+      if (isWeb3Enabled) {
+        await getAssets();
+      }
+    })();
+  }, [assetsData, isWeb3Enabled, assetsDataIsLoading]);
 
   return (
     <AmazonContext.Provider
@@ -104,6 +152,18 @@ export const AmazonProvider = ({ children }) => {
         nickname,
         setNickname,
         assets,
+        balance,
+        getBalance,
+        tokenAmount,
+        setTokenAmount,
+        isLoading,
+        setIsLoading,
+        setEtherScanLink,
+        etherScanLink,
+        currentAccount,
+        buyToken,
+        amountDue,
+        setAmountDue,
       }}
     >
       {children}
