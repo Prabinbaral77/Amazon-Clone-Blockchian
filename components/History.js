@@ -22,9 +22,10 @@ const History = () => {
         )}
 
         <div className={styles.transactions}>
-          {ownedItems.map((item, index) => {
-            return <Transactions key={index} item={item} />;
-          })}
+          {ownedItems &&
+            ownedItems.map((item, index) => {
+              return <Transactions key={index} item={item} />;
+            })}
         </div>
       </div>
     </div>
