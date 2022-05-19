@@ -16,6 +16,8 @@ export const AmazonProvider = ({ children }) => {
   const [etherScanLink, setEtherScanLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [balance, setBalance] = useState("");
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [ownedItems, setOwnedItems] = useState([]);
 
   const {
     authenticate,
@@ -24,6 +26,7 @@ export const AmazonProvider = ({ children }) => {
     Moralis,
     user,
     isWeb3Enabled,
+    isInitialized,
   } = useMoralis();
 
   const {
@@ -52,6 +55,30 @@ export const AmazonProvider = ({ children }) => {
     }
   };
 
+  const listenToUpdate = async () => {
+    console.log("Listenning");
+    let query = new Moralis.Query("EthTransactions");
+    let subscription = await query.subscribe();
+    subscription.on("update", async (object) => {
+      console.log("NEw transactions");
+      console.log(object);
+      setRecentTransactions([object]);
+    });
+  };
+
+  const getOwnedAssets = async () => {
+    try {
+      if (userData[0]) {
+        setOwnedItems((prevItems) => [
+          ...prevItems,
+          userData[0].attributes.ownerAsset,
+        ]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getBalance = async () => {
     try {
       if (!isAuthenticated || !currentAccount) return;
@@ -66,6 +93,7 @@ export const AmazonProvider = ({ children }) => {
 
       if (isWeb3Enabled) {
         const response = await Moralis.executeFunction(options);
+        console.log(response.toString());
         setBalance(response.toString());
       }
     } catch (error) {
@@ -81,7 +109,23 @@ export const AmazonProvider = ({ children }) => {
         type: "erc20",
         amount: price,
         receiver: amazonCoinAddress,
+        contractAddress: amazonCoinAddress,
       };
+
+      let transaction = await Moralis.transfer(options);
+      const receipt = await transaction.wait();
+
+      if (receipt) {
+        const res = userData[0].add("ownerAsset", {
+          ...asset,
+          purchaseDate: Date.now(),
+          etherScanLink: `https://rinkeby.etherscan.io/tx/${receipt.transactionHash}`,
+        });
+
+        await res.save().then(() => {
+          alert("You have successfully purchased this asset!");
+        });
+      }
     } catch (error) {
       console.log(error);
     }
@@ -117,6 +161,9 @@ export const AmazonProvider = ({ children }) => {
 
   useEffect(() => {
     (async () => {
+      if (isInitialized) {
+        await listenToUpdate();
+      }
       if (isAuthenticated) {
         await getBalance();
         const currentUserName = await user?.get("nickname");
@@ -125,7 +172,7 @@ export const AmazonProvider = ({ children }) => {
         setCurrentAccount(account);
       }
     })();
-  }, [isAuthenticated, user, username, currentAccount]);
+  }, [isAuthenticated, user, username, currentAccount, listenToUpdate]);
 
   useEffect(() => {
     const getAssets = async () => {
@@ -138,6 +185,7 @@ export const AmazonProvider = ({ children }) => {
     };
     (async () => {
       if (isWeb3Enabled) {
+        await getOwnedAssets();
         await getAssets();
       }
     })();
@@ -164,6 +212,9 @@ export const AmazonProvider = ({ children }) => {
         buyToken,
         amountDue,
         setAmountDue,
+        buyAsset,
+        recentTransactions,
+        ownedItems,
       }}
     >
       {children}

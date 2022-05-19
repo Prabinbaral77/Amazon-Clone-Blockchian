@@ -16,7 +16,7 @@ import BuyModal from "./BuyModal";
 
 const Header = () => {
   const styles = {
-    container: `h-[60px] w-full flex items-center gap-5 px-16 mb-[100px]`,
+    container: `h-[60px] w-full flex items-center gap-5 px-16 `,
     logo: `flex items-center ml-[20px] cursor-pointer flex-1`,
     search: `p-[25px] mr-[30px] w-[400px] h-[40px] bg-white rounded-full shadow-lg flex items-center border border-black`,
     menu: `flex items-center gap-6`,
@@ -28,6 +28,8 @@ const Header = () => {
   const { openModal, isModalOpen, closeModal } = useModal();
 
   const { balance, getBalance } = useContext(AmazonContext);
+
+  // console.log(isModalOpen);
 
   return (
     <div className={styles.container}>
@@ -56,7 +58,7 @@ const Header = () => {
         {balance ? (
           <div
             className={(styles.menuItem, styles.balance)}
-            onClick={() => openModal()}
+            onClick={openModal}
           >
             {balance}
             <FaCoins className={styles.coins} />
@@ -67,7 +69,7 @@ const Header = () => {
         ) : (
           <div
             className={(styles.menuItem, styles.balance)}
-            onClick={() => openModal()}
+            onClick={openModal}
           >
             0 AC <FaCoins className={styles.coins} />
             <Modal isOpen={isModalOpen} transition={ModalTransition.SCALE}>
